@@ -1,0 +1,113 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Tue Oct 03 22:09:16 CEST 2023
+  Author:  Ismail
+  Type: BPEL 2.0 Process
+  Purpose: Asynchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="ArithmeticBPEL"
+         targetNamespace="http://bht.com/Aplikacije/ArithmeticBPEL/ArithmeticBPEL"
+         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:client="http://bht.com/Aplikacije/ArithmeticBPEL/ArithmeticBPEL"
+         xmlns:ora="http://schemas.oracle.com/xpath/extension"
+         xmlns:ui="http://xmlns.oracle.com/soa/designer"
+         xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap">
+
+    <import ui:processWSDL="true" namespace="http://bht.com/Aplikacije/ArithmeticBPEL/ArithmeticBPEL" location="../WSDLs/ArithmeticBPEL.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"/>
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    --> 
+    <partnerLinks>
+        <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+        <partnerLink name="arithmetic" partnerLinkType="client:ArithmeticBPEL" myRole="ArithmeticBPELProvider" partnerRole="ArithmeticBPELRequester"/>
+    </partnerLinks>
+
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        VARIABLES                                                        
+        List of messages and XML documents used within this BPEL process 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <variables>
+        <!-- Reference to the message passed as input during initiation -->
+
+        <!-- Reference to the message that will be sent back to the requester during callback -->
+        <variable name="addition_InputVariable" messageType="client:ArithmeticBPELRequestMessage"/>
+        <variable name="sub_InputVariable" messageType="client:ArithmeticBPELRequestMessage"/>
+        <variable name="sub_OutVariable" messageType="client:ArithmeticBPELResponseMessage"/>
+        <variable name="addition_OutputVariable" messageType="client:ArithmeticBPELResponseMessage"/>
+    </variables>
+
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+       ORCHESTRATION LOGIC                                               
+       Set of activities coordinating the flow of messages across the    
+       services integrated within this business process                  
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <sequence name="main">
+        <!-- Receive input from requestor. (Note: This maps to operation defined in ArithmeticBPEL.wsdl) -->
+
+        <!-- 
+          Asynchronous callback to the requester. (Note: the callback location and correlation id is transparently handled using WS-addressing.)
+        -->
+        <pick name="Pick1" createInstance="yes">
+            <onMessage bpelx:name="ADD" partnerLink="arithmetic" variable="addition_InputVariable"
+                       portType="client:ArithmeticBPEL" operation="addition">
+                <sequence name="Sequence2">
+                    <assign name="Assign2">
+                        <copy>
+                            <from>"ADD"</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$addition_OutputVariable.payload/client:operation</to>
+                        </copy>
+                        <copy>
+                            <from>$addition_InputVariable.payload/client:inputOne+$addition_InputVariable.payload/client:inputTwo</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$addition_OutputVariable.payload/client:result</to>
+                        </copy>
+                    </assign>
+                    <reply name="ReplyADD" partnerLink="arithmetic" variable="addition_OutputVariable"
+                           portType="client:ArithmeticBPEL" operation="addition"/>
+                </sequence>
+            </onMessage>
+            <onMessage bpelx:name="sub" partnerLink="arithmetic" variable="sub_InputVariable"
+                       portType="client:ArithmeticBPEL" operation="subOperation">
+                <sequence name="Sequence3">
+                    <assign name="Assign3">
+                        <copy>
+                            <from>$sub_InputVariable.payload/client:inputOne - $sub_InputVariable.payload/client:inputTwo</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$sub_OutVariable.payload/client:result</to>
+                        </copy>
+                        <copy>
+                            <from>"SUB"</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$sub_OutVariable.payload/client:operation</to>
+                        </copy>
+                    </assign>
+                    <invoke name="InvokeSUB" partnerLink="arithmetic" portType="client:ArithmeticBPELCallback"
+                            operation="subOperationResponse" inputVariable="sub_OutVariable" bpelx:invokeAsDetail="no"/>
+                </sequence>
+            </onMessage>
+        </pick>
+    </sequence>
+</process>

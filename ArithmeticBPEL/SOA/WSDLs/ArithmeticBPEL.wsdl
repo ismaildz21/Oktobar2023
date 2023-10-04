@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="ArithmeticBPEL"
+             targetNamespace="http://bht.com/Aplikacije/ArithmeticBPEL/ArithmeticBPEL"
+             xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:client="http://bht.com/Aplikacije/ArithmeticBPEL/ArithmeticBPEL"
+             xmlns:plnk="http://docs.oasis-open.org/wsbpel/2.0/plnktype">
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	TYPE DEFINITION - List of services participating in this BPEL process
+	The default output of the BPEL designer uses strings as input and 
+	output to the BPEL Process. But you can define or import any XML 
+	Schema type and use them as part of the message types.
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->   
+	<wsdl:types>
+		<schema xmlns="http://www.w3.org/2001/XMLSchema">
+			<import namespace="http://bht.com/Aplikacije/ArithmeticBPEL/ArithmeticBPEL" schemaLocation="../Schemas/ArithmeticBPEL.xsd" />
+		</schema>
+	</wsdl:types>
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	MESSAGE TYPE DEFINITION - Definition of the message types used as 
+	part of the port type defintions
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->      
+	<wsdl:message name="ArithmeticBPELRequestMessage">
+		<wsdl:part name="payload" element="client:requestShema"/>
+	</wsdl:message>
+
+	<wsdl:message name="ArithmeticBPELResponseMessage">
+		<wsdl:part name="payload" element="client:responseShema"/>
+	</wsdl:message>
+
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	PORT TYPE DEFINITION - A port type groups a set of operations into
+	a logical service unit.
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!-- portType implemented by the ArithmeticBPEL BPEL process -->
+	<wsdl:portType name="ArithmeticBPEL">
+		<wsdl:operation name="subOperation">
+			<wsdl:input message="client:ArithmeticBPELRequestMessage"/>
+		</wsdl:operation>
+                
+                <wsdl:operation name="addition">
+			<wsdl:input message="client:ArithmeticBPELRequestMessage"/>
+                        <wsdl:output message="client:ArithmeticBPELResponseMessage"/>
+		</wsdl:operation>
+                
+	</wsdl:portType>
+
+	<!-- portType implemented by the requester of ArithmeticBPEL BPEL process
+	for asynchronous callback purposes
+	-->
+	<wsdl:portType name="ArithmeticBPELCallback">
+		<wsdl:operation name="subOperationResponse">
+			<wsdl:input message="client:ArithmeticBPELResponseMessage"/>
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	PARTNER LINK TYPE DEFINITION
+	the ArithmeticBPEL partnerLinkType binds the provider and
+	requester portType into an asynchronous conversation.
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<plnk:partnerLinkType name="ArithmeticBPEL">
+		<plnk:role name="ArithmeticBPELProvider" portType="client:ArithmeticBPEL"/>
+		<plnk:role name="ArithmeticBPELRequester" portType="client:ArithmeticBPELCallback"/>
+	</plnk:partnerLinkType>
+</wsdl:definitions>

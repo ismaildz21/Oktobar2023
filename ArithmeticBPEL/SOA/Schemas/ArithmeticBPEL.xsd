@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<schema attributeFormDefault="unqualified"
+	elementFormDefault="qualified"
+	targetNamespace="http://bht.com/Aplikacije/ArithmeticBPEL/ArithmeticBPEL"
+	xmlns="http://www.w3.org/2001/XMLSchema">
+	<element name="requestShema">
+		<complexType>
+			<sequence>
+				<element name="inputOne" type="int"/>
+                                <element name="inputTwo" type="int"/>
+			</sequence>
+		</complexType>
+	</element>
+	<element name="responseShema">
+		<complexType>
+			<sequence>
+				<element name="operation" type="string"/>
+                                <element name="result" type="int"/>
+			</sequence>
+		</complexType>
+	</element>
+</schema>
